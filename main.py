@@ -1,5 +1,7 @@
 from TracksHandler import computeTracks
-from Visualisation import visualisation
+from Visualisation import visualisation, create_video
 
-tracks = computeTracks(sigma_iou=0.5, Hungarian=False, kermanFilter=False)
-visualisation(tracks=tracks)
+frames = computeTracks(sigma_iou=0.4, Hungarian=False, kermanFilter=False)
+visualisation(frames=frames)
+create_video()
+

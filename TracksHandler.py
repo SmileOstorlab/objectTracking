@@ -1,7 +1,7 @@
 from Iou import compute_iou
 from PreProcessing import preprocess
 from typing import Any
-
+from tqdm import tqdm
 
 class Frame:
     def __init__(self, frameNumber: int):
@@ -29,11 +29,14 @@ def computeTracks(sigma_iou: float = 0.4, Hungarian: bool = False, kermanFilter:
     df = preprocess()
     idManager = IDManager()
     frames: list[Frame] = []
+    unique_frames = df['frame'].unique()
+    progress_bar = tqdm(total=len(unique_frames), desc="Compute box")
 
     # Step 3: Associate detections to tracks
-    for frame_number in df['frame'].unique():
+    for frame_number in unique_frames:
         currentFrame = Frame(frame_number)
         frame_detections = df[df['frame'] == frame_number]
+        progress_bar.update(1)
 
         # Compute IoU between each detection and each track
         for _, det in frame_detections.iterrows():
@@ -42,12 +45,13 @@ def computeTracks(sigma_iou: float = 0.4, Hungarian: bool = False, kermanFilter:
             best_iou = 0
             best_track = None
 
-            for curr_id, old_box in frames[-1].ids.items():
-                iou = compute_iou(det_box, old_box)
+            if len(frames) != 0:
+                for curr_id, old_box in frames[-1].ids.items():
+                    iou = compute_iou(det_box, old_box)
 
-                if iou > best_iou:
-                    best_iou = iou
-                    best_track = curr_id
+                    if iou > best_iou:
+                        best_iou = iou
+                        best_track = curr_id
 
             # If the best IoU is above the threshold, update the track with the new detection
             if best_iou >= sigma_iou:
@@ -57,5 +61,5 @@ def computeTracks(sigma_iou: float = 0.4, Hungarian: bool = False, kermanFilter:
 
         frames.append(currentFrame)
 
+    progress_bar.close()
     return frames
-
