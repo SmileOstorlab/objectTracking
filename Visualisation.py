@@ -7,8 +7,8 @@ from TracksHandler import Frame
 
 def visualisation(frames: list[Frame]) -> None:
     progress_bar = tqdm(total=len(frames), desc="Draw Boxes")
-
     images_directory = 'ADL-Rundle-6/img1'
+
     for frame in frames:
         progress_bar.update(1)
         image_file = f'{frame.frameNumber:06}.jpg'
@@ -33,20 +33,18 @@ def visualisation(frames: list[Frame]) -> None:
 
 
 
-def create_video() -> None:
+def create_video(output_name: str = 'output_video.mp4') -> None:
     # Directory where your JPEG frames are stored
     frames_directory = 'img2'
     frame_files = [f for f in os.listdir(frames_directory) if f.endswith('.jpg')]
     frame_files.sort()
 
-    output_video_filename = 'output_video.mp4'
-
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # You can choose other codecs like 'XVID' or 'MJPG'
     frame_rate = 30  # Adjust the frame rate as needed
     frame_size = (1920, 1080)  # Set the width and height of frames as needed
-    out = cv2.VideoWriter(output_video_filename, fourcc, frame_rate, frame_size)
+    out = cv2.VideoWriter(output_name, fourcc, frame_rate, frame_size)
 
-    progress_bar = tqdm(total=len(frame_files), desc="Compile Frames into video")
+    progress_bar = tqdm(total=len(frame_files), desc=f"Compile Frames into video: {output_name}")
 
     # Loop through the frame files and add them to the video
     for frame_file in frame_files:
@@ -65,4 +63,3 @@ def create_video() -> None:
     # Release the VideoWriter object
     out.release()
     progress_bar.close()
-    
