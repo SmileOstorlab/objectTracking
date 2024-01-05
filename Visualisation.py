@@ -18,19 +18,18 @@ def visualisation(frames: list[Frame]) -> None:
 
         if image is None:
             print(f"Error: Could not read {image_file}")
-        for curr_id, box in frame.ids.items():
-            x, y, w, h = box
+        for track in frame.get_active_track():
+            x, y, w, h = track.detection
             x, y, w, h = int(x), int(y), int(w), int(h)
             cv2.rectangle(image, (x, y), (w, h), (0, 255, 0), 2)
             # Put the ID on the image
-            cv2.putText(image, f"ID: {curr_id}", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+            cv2.putText(image, f"ID: {track.id}", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 
             # Save the modified image with boxes and IDs
             output_image_path = os.path.join('img2', image_file)
             cv2.imwrite(output_image_path, image)
 
     progress_bar.close()
-
 
 
 def create_video(output_name: str = 'output_video.mp4') -> None:
