@@ -6,6 +6,7 @@ from PreProcessing import preprocess
 from scipy.optimize import linear_sum_assignment
 from tqdm import tqdm
 from time import sleep
+from tp1.KalmanFilter import KalmanFilter
 
 
 class Frame:
@@ -32,7 +33,6 @@ class IDManager:
 
 def hungarian(frame_detections: pd.DataFrame, frames: list[Frame], currentFrame: Frame, idManager: IDManager,
               cost_matrix: np.ndarray, sigma_iou: float = 0.4) -> None:
-
     for track_idx, (curr_id, old_box) in enumerate(frames[-1].ids.items()):
         for det_idx, (_, det) in enumerate(frame_detections.iterrows()):
             det_box = [det['bb_left'], det['bb_top'], det['bb_left'] + det['bb_width'],
@@ -81,7 +81,7 @@ def greedy(frame_detections: pd.DataFrame, frames: list[Frame], currentFrame: Fr
             currentFrame.add_detection(id=idManager.generate_new_id(), detection=det_box)
 
 
-def computeTracks(sigma_iou: float = 0.4, Hungarian: bool = False, kermanFilter: bool = False) -> list[Frame]:
+def computeTracks(sigma_iou: float = 0.4, Hungarian: bool = False, kalmanFilter: bool = False) -> list[Frame]:
     df = preprocess()
     idManager = IDManager()
     frames: list[Frame] = []
@@ -98,7 +98,7 @@ def computeTracks(sigma_iou: float = 0.4, Hungarian: bool = False, kermanFilter:
             if not Hungarian:
                 greedy(sigma_iou=sigma_iou, frame_detections=frame_detections, frames=frames, currentFrame=currentFrame,
                        idManager=idManager)
-            elif kermanFilter:
+            elif kalmanFilter:
                 raise NotImplemented
             else:
                 num_tracks = len(frames[-1].ids) if frames else 0
