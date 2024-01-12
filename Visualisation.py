@@ -32,7 +32,7 @@ def visualisation(frames: list[Frame]) -> None:
     progress_bar.close()
 
 
-def create_video(output_name: str = 'output_video.mp4') -> None:
+def create_video(output_name: str = 'output_video.mp4', frame_rate=30) -> None:
     # Directory where your JPEG frames are stored
     frames_directory = 'img2'
     frame_files = [f for f in os.listdir(frames_directory) if f.endswith('.jpg')]

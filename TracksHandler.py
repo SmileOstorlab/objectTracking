@@ -31,47 +31,70 @@ class Track:
 class IDManager:
     def __init__(self):
         self.next_id = 0
-        self.active_ids = set()
 
     def generate_new_id(self) -> int:
         """Generate a new ID and mark it as active."""
         new_id = self.next_id
         self.next_id += 1
-        self.active_ids.add(new_id)
         return new_id
 
-    def add_active_track(self, track_id: int) -> None:
-        self.active_ids.add(track_id)
 
-    def get_active_tracks(self) -> set[int]:
-        return self.active_ids
 
 
 class Frame:
-    def __init__(self, frameNumber: int, matched_tracks: Optional[dict[int, Track]] = None):
-        self.idManager = IDManager()
+    def __init__(self, frameNumber: int, idManager: IDManager, matched_tracks: Optional[list[Track]] = None) -> None:
+        """Class to represent frames
+
+        :param frameNumber: frame number
+        :param matched_tracks: active track in the previous frame
+        """
+        self.idManager = idManager
         self.frameNumber = frameNumber
-        self.tracks: dict[int, Track] = {} if matched_tracks is None else matched_tracks  # list of pair id/Track
+        self.active_track = set()
+        self.tracks: dict[int, Track] = {} if matched_tracks is None else {track.id: track for track in matched_tracks}
+
+    def add_active_track(self, track_id: int) -> None:
+        self.active_track.add(track_id)
+
+    def get_active_tracks(self) -> set[int]:
+        return self.active_track
 
     def get_active_track(self) -> list[Track]:
+        """return all the active tracks on that frame
+
+        :return: list of Track objects
+        """
         ret = []
-        active_tracks = self.idManager.get_active_tracks()
+        active_tracks = self.get_active_tracks()
         for track_id in active_tracks:
             ret.append(self.tracks[track_id])
         return ret
 
     def add_track(self, detection: list[int], kalmanFilter: bool = False) -> None:
+        """Add a new track to the current frame
+
+        :param detection: box to give the track
+        :param kalmanFilter: boolean value to use a kalman filter
+        :return: None
+        """
         track_id = self.idManager.generate_new_id()
+        self.add_active_track(track_id=track_id)
         self.tracks[track_id] = Track(id=track_id, detection=detection, kalmanFilter=kalmanFilter)
 
     def update_track(self, track_id: int, detection: list[int]) -> None:
-        self.idManager.add_active_track(track_id=track_id)
+        """Update the given track with its new detection
+
+        :param track_id: id of the track to update
+        :param detection: detection box
+        :return: None
+        """
+        self.add_active_track(track_id=track_id)
         self.tracks[track_id].update(detection=detection)
 
 
-def hungarian(frame_detections: pd.DataFrame, frames: list[Frame], currentFrame: Frame,
+def hungarian(frame_detections: pd.DataFrame, active_tracks: list[Track], currentFrame: Frame,
               cost_matrix: np.ndarray, sigma_iou: float = 0.4, kalmanFilter: bool = False) -> None:
-    for track_idx, (track_id, track) in enumerate(frames[-1].tracks.items()):
+    for track_idx, (track) in enumerate(active_tracks):
         for det_idx, (_, det) in enumerate(frame_detections.iterrows()):
             det_box = [det['bb_left'], det['bb_top'], det['bb_left'] + det['bb_width'],
                        det['bb_top'] + det['bb_height']]
@@ -91,13 +114,13 @@ def hungarian(frame_detections: pd.DataFrame, frames: list[Frame], currentFrame:
 
         if iou_score >= sigma_iou:
             # If IoU is above the threshold, update the track with the new detection
-            track_id = list(frames[-1].tracks.keys())[track_idx]
+            track_id = active_tracks[track_idx].id
             currentFrame.update_track(track_id=track_id, detection=det_box)
         else:
             currentFrame.add_track(detection=det_box, kalmanFilter=kalmanFilter)
 
 
-def greedy(frame_detections: pd.DataFrame, frames: list[Frame], currentFrame: Frame,
+def greedy(frame_detections: pd.DataFrame, active_tracks: list[Track], currentFrame: Frame,
            sigma_iou: float = 0.4, kalmanFilter: bool = False) -> None:
     for _, det in frame_detections.iterrows():
         det_box = [det['bb_left'], det['bb_top'], det['bb_left'] + det['bb_width'],
@@ -105,12 +128,12 @@ def greedy(frame_detections: pd.DataFrame, frames: list[Frame], currentFrame: Fr
         best_iou = 0
         best_track = None
 
-        for curr_id, track in frames[-1].tracks.items():
+        for track in active_tracks:
             iou = compute_iou(det_box, track.detection)
 
             if iou > best_iou:
                 best_iou = iou
-                best_track = curr_id
+                best_track = track.id
 
         # If the best IoU is above the threshold, update the track with the new detection
         if best_iou >= sigma_iou:
@@ -123,6 +146,7 @@ def computeTracks(sigma_iou: float = 0.4, Hungarian: bool = False, kalmanFilter:
     df = preprocess()
     frames: list[Frame] = []
     unique_frames = df['frame'].unique()
+    idManager = IDManager()
     progress_bar = tqdm(total=len(unique_frames), desc="Compute box")
 
     # Step 3: Associate detections to tracks
@@ -131,21 +155,23 @@ def computeTracks(sigma_iou: float = 0.4, Hungarian: bool = False, kalmanFilter:
         progress_bar.update(1)
 
         if len(frames) == 0:
-            currentFrame = Frame(frame_number)
+            currentFrame = Frame(frameNumber=frame_number, idManager=idManager)
         else:
-            currentFrame = Frame(frame_number, matched_tracks=frames[-1].tracks)
+            currentFrame = Frame(frameNumber=frame_number, matched_tracks=frames[-1].get_active_track(),
+                                 idManager=idManager)
 
         if len(frames) != 0:
             if not Hungarian:
-                greedy(sigma_iou=sigma_iou, frame_detections=frame_detections, frames=frames, currentFrame=currentFrame,
-                       kalmanFilter=kalmanFilter)
+                greedy(sigma_iou=sigma_iou, frame_detections=frame_detections, currentFrame=currentFrame,
+                       active_tracks=frames[-1].get_active_track(), kalmanFilter=kalmanFilter)
             else:
                 num_tracks = len(frames[-1].tracks) if frames else 0
                 num_detections = len(frame_detections)
                 cost_matrix = np.ones((num_tracks, num_detections))
 
-                hungarian(sigma_iou=sigma_iou, frame_detections=frame_detections, frames=frames,
-                          currentFrame=currentFrame, cost_matrix=cost_matrix, kalmanFilter=kalmanFilter)
+                hungarian(sigma_iou=sigma_iou, frame_detections=frame_detections, currentFrame=currentFrame,
+                          active_tracks=frames[-1].get_active_track(), cost_matrix=cost_matrix,
+                          kalmanFilter=kalmanFilter)
 
         else:  # if no track, add all the boxes to new tracks
             for _, det in frame_detections.iterrows():
@@ -155,6 +181,7 @@ def computeTracks(sigma_iou: float = 0.4, Hungarian: bool = False, kalmanFilter:
 
         frames.append(currentFrame)
 
+    progress_bar.write(f'found {idManager.next_id} total tracks')
     progress_bar.close()
     sleep(0.5)  # for good io...
     return frames
