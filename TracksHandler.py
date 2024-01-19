@@ -15,15 +15,25 @@ class Track:
         self.id = id
         self.detection = detection
         self.kalmanFilter = None
+        self.center = None
+        self.prediction = None
         if kalmanFilter:
             self.kalmanFilter = KalmanFilter(dt=0.1, u_x=0, u_y=0, std_acc=1, std_meas_x=0.1, std_meas_y=0.1)
 
     def update(self, detection: [list[int]]):
         if self.kalmanFilter is not None:
+            center_x = detection[0] + (detection[2] / 2)
+            center_y = detection[1] + (detection[3] / 2)
+            self.center = [center_x, center_y]
+            print(self.center)
             print(f'detection before prediction: {detection}')
-            self.kalmanFilter.update(detection)
-            self.detection = self.kalmanFilter.predict()
-            print(f'prediction after prediction: {self.detection}')
+            res, _ = self.kalmanFilter.update(self.center)
+            new_x, new_y = res[0][0] - (detection[2] / 2), res[1][0] - (detection[3] / 2)
+            self.prediction = [new_x, new_y, detection[2], detection[3]]
+            print(f'prediction after prediction: {new_x, new_y}')
+
+            self.detection = detection
+
         else:
             self.detection = detection
 
@@ -37,8 +47,6 @@ class IDManager:
         new_id = self.next_id
         self.next_id += 1
         return new_id
-
-
 
 
 class Frame:
@@ -96,8 +104,7 @@ def hungarian(frame_detections: pd.DataFrame, active_tracks: list[Track], curren
               cost_matrix: np.ndarray, sigma_iou: float = 0.4, kalmanFilter: bool = False) -> None:
     for track_idx, (track) in enumerate(active_tracks):
         for det_idx, (_, det) in enumerate(frame_detections.iterrows()):
-            det_box = [det['bb_left'], det['bb_top'], det['bb_left'] + det['bb_width'],
-                       det['bb_top'] + det['bb_height']]
+            det_box = [det['bb_left'], det['bb_top'], det['bb_width'], det['bb_height']]
             iou = compute_iou(det_box, track.detection)
             cost_matrix[track_idx, det_idx] = 1 - iou
 
@@ -109,8 +116,7 @@ def hungarian(frame_detections: pd.DataFrame, active_tracks: list[Track], curren
         iou_score = 1 - cost_matrix[track_idx, det_idx]
         det_idx = list(col_indices).index(det_idx)  # Find the detection index
         det = frame_detections.iloc[det_idx]
-        det_box = [det['bb_left'], det['bb_top'], det['bb_left'] + det['bb_width'],
-                   det['bb_top'] + det['bb_height']]
+        det_box = [det['bb_left'], det['bb_top'], det['bb_width'], det['bb_height']]
 
         if iou_score >= sigma_iou:
             # If IoU is above the threshold, update the track with the new detection
@@ -123,8 +129,7 @@ def hungarian(frame_detections: pd.DataFrame, active_tracks: list[Track], curren
 def greedy(frame_detections: pd.DataFrame, active_tracks: list[Track], currentFrame: Frame,
            sigma_iou: float = 0.4, kalmanFilter: bool = False) -> None:
     for _, det in frame_detections.iterrows():
-        det_box = [det['bb_left'], det['bb_top'], det['bb_left'] + det['bb_width'],
-                   det['bb_top'] + det['bb_height']]
+        det_box = [det['bb_left'], det['bb_top'], det['bb_width'], det['bb_height']]
         best_iou = 0
         best_track = None
 
@@ -175,8 +180,7 @@ def computeTracks(sigma_iou: float = 0.4, Hungarian: bool = False, kalmanFilter:
 
         else:  # if no track, add all the boxes to new tracks
             for _, det in frame_detections.iterrows():
-                det_box = [det['bb_left'], det['bb_top'], det['bb_left'] + det['bb_width'],
-                           det['bb_top'] + det['bb_height']]
+                det_box = [det['bb_left'], det['bb_top'], det['bb_width'], det['bb_height']]
                 currentFrame.add_track(detection=det_box, kalmanFilter=kalmanFilter)
 
         frames.append(currentFrame)

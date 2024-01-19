@@ -14,7 +14,7 @@ def create_csv(frames: list[Frame], csv_filename) -> None:
         for frame in frames:
             progress_bar.update(1)
             #   <frame>, <id>, <bb_left>, <bb_top>, <bb_width>, <bb_height>, <conf>, <x>, <y>, <z>
-            for track in frame.tracks.values():
+            for track in frame.tracks.values():  # todo: should only be active tracks...
                 row = [frame.frameNumber, track.id]
                 for element in track.detection:
                     row.append(element)
@@ -39,7 +39,13 @@ def visualisation(frames: list[Frame]) -> None:
         for track in frame.get_active_track():
             x, y, w, h = track.detection
             x, y, w, h = int(x), int(y), int(w), int(h)
-            cv2.rectangle(image, (x, y), (w, h), (0, 255, 0), 2)
+            cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+            if track.center is not None:
+                cv2.rectangle(image, (int(track.center[0]), int(track.center[1])), (int(track.center[0]) + 10, int(track.center[1]) + 10), (0, 0, 255), 2)
+            if track.prediction is not None:
+                x, y, w, h = track.prediction
+                x, y, w, h = int(x), int(y), int(w), int(h)
+                cv2.rectangle(image, (x, y), (x + w, y + h), (255, 0, 0), 2)
             # Put the ID on the image
             cv2.putText(image, f"ID: {track.id}", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 

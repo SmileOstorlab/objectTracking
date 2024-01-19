@@ -46,29 +46,30 @@ def write_lines(version_name: str):
     output_file.close()
 
 
-sigma_iou = 0.4
+sigma_iou = 0.5
+
 # frames = computeTracks(sigma_iou=sigma_iou, Hungarian=False, kalmanFilter=False)
 # create_csv(frames=frames,
 #            csv_filename='benchmark/data/trackers/mot_challenge/MOT15-train/MPNTrack/data/ADL-Rundle-6.txt')
 # get_metrics()
-# write_lines('greedy')
-# # visualisation(frames=frames)
-# # create_video(output_name='greedy.mp4', frame_rate=10)
-#
+# write_lines(f'greedy - {sigma_iou}')
+# visualisation(frames=frames)
+# create_video(output_name='greedy.mp4', frame_rate=10)
+
 # frames = computeTracks(sigma_iou=sigma_iou, Hungarian=True, kalmanFilter=False)
 # create_csv(frames=frames,
 #            csv_filename='benchmark/data/trackers/mot_challenge/MOT15-train/MPNTrack/data/ADL-Rundle-6.txt')
 # get_metrics()
-# write_lines('Hungarian')
+# write_lines(f'Hungarian - {sigma_iou}')
 # visualisation(frames=frames)
 # create_video(output_name='hungarian.mp4', frame_rate=10)
 
 frames = computeTracks(sigma_iou=sigma_iou, Hungarian=False, kalmanFilter=True)
 create_csv(frames=frames,
            csv_filename='benchmark/data/trackers/mot_challenge/MOT15-train/MPNTrack/data/ADL-Rundle-6.txt')
-get_metrics()
-write_lines('KalmanFilter')
-# visualisation(frames=frames)
+# get_metrics()
+# write_lines(f'KalmanFilter - {sigma_iou}')
+visualisation(frames=frames)
 # create_video(output_name='greedy_kalman.mp4')
 
 # frames = computeTracks(sigma_iou=sigma_iou, Hungarian=True, kalmanFilter=True)

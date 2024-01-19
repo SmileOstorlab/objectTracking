@@ -1,0 +1,28 @@
+HOTA: MPNTrack-pedestrian          HOTA      DetA      AssA      DetRe     DetPr     AssRe     AssPr     LocA      OWTA      HOTA(0)   LocA(0)   HOTALocA(0)
+CLEAR: MPNTrack-pedestrian         MOTA      MOTP      MODA      CLR_Re    CLR_Pr    MTR       PTR       MLR       sMOTA     CLR_TP    CLR_FN    CLR_FP    IDSW      MT        PT        ML        Frag
+Identity: MPNTrack-pedestrian      IDF1      IDR       IDP       IDTP      IDFN      IDFP
+Count: MPNTrack-pedestrian         Dets      GT_Dets   IDs       GT_IDs
+
+   		First
+ADL-Rundle-6                       59.747    62.085    57.602    66.894    82.267    68.546    72.154    86.352    62.072    71.132    83.354    59.291    
+ADL-Rundle-6                       70.992    84.893    71.132    76.223    93.739    50        41.667    8.3333    59.478    3818      1191      255       7         12        10        2         11        
+ADL-Rundle-6                       75.578    68.517    84.262    3432      1577      641       
+ADL-Rundle-6                       4073      5009      20        24
+
+
+		Hungarian - 0.15
+ADL-Rundle-6                       8.0795    13.731    4.9162    21.026    23.758    6.4482    28.248    67.203    10.049    18.862    41.339    7.7972    
+ADL-Rundle-6                       -47.375   65.587    -45.378   21.561    24.363    0         58.333    41.667    -54.795   1080      3929      3353      100       0         14        10        78        
+ADL-Rundle-6                       7.9432    7.4865    8.4593    375       4634      4058      
+ADL-Rundle-6                       4433      5009      245       24
+		greedy - 0.8
+ADL-Rundle-6                       8.7415    18.949    4.1746    29.64     28.806    4.5249    57.529    68.443    10.994    18.107    46.758    8.4666    
+ADL-Rundle-6                       -45.239   66.306    -39.968   31.463    30.578    0         75        25        -55.84    1576      3433      3578      264       0         18        6         160       
+ADL-Rundle-6                       8.2062    8.325     8.0908    417       4592      4737      
+ADL-Rundle-6                       5154      5009      965       24
+		greedy - 0.9
+ADL-Rundle-6                       9.3019    25.8      3.4859    43.378    33.453    3.5828    68.532    71.528    12.14     15.879    54.906    8.7185    
+ADL-Rundle-6                       -37.033   68.257    -24.855   52.406    40.416    4.1667    91.667    4.1667    -53.669   2625      2384      3870      610       1         22        1         256       
+ADL-Rundle-6                       7.493     8.6045    6.6359    431       4578      6064      
+ADL-Rundle-6                       6495      5009      1677      24        
+
