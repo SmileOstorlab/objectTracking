@@ -25,12 +25,9 @@ class Track:
             center_x = detection[0] + (detection[2] / 2)
             center_y = detection[1] + (detection[3] / 2)
             self.center = [center_x, center_y]
-            print(self.center)
-            print(f'detection before prediction: {detection}')
             res, _ = self.kalmanFilter.update(self.center)
             new_x, new_y = res[0][0] - (detection[2] / 2), res[1][0] - (detection[3] / 2)
             self.prediction = [new_x, new_y, detection[2], detection[3]]
-            print(f'prediction after prediction: {new_x, new_y}')
 
             self.detection = detection
 
@@ -105,7 +102,10 @@ def hungarian(frame_detections: pd.DataFrame, active_tracks: list[Track], curren
     for track_idx, (track) in enumerate(active_tracks):
         for det_idx, (_, det) in enumerate(frame_detections.iterrows()):
             det_box = [det['bb_left'], det['bb_top'], det['bb_width'], det['bb_height']]
-            iou = compute_iou(det_box, track.detection)
+            if track.prediction is not None:  # ONLY set if Kalman filter is TRUE
+                iou = compute_iou(det_box, track.prediction)
+            else:
+                iou = compute_iou(det_box, track.detection)
             cost_matrix[track_idx, det_idx] = 1 - iou
 
     # Apply the Hungarian algorithm
@@ -134,7 +134,10 @@ def greedy(frame_detections: pd.DataFrame, active_tracks: list[Track], currentFr
         best_track = None
 
         for track in active_tracks:
-            iou = compute_iou(det_box, track.detection)
+            if track.prediction is not None:  # ONLY set if Kalman filter is TRUE
+                iou = compute_iou(det_box, track.prediction)
+            else:
+                iou = compute_iou(det_box, track.detection)
 
             if iou > best_iou:
                 best_iou = iou
