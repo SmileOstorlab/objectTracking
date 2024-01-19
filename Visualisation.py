@@ -14,7 +14,7 @@ def create_csv(frames: list[Frame], csv_filename) -> None:
         for frame in frames:
             progress_bar.update(1)
             #   <frame>, <id>, <bb_left>, <bb_top>, <bb_width>, <bb_height>, <conf>, <x>, <y>, <z>
-            for track in frame.tracks.values():  # todo: should only be active tracks...
+            for track in frame.get_active_track():
                 row = [frame.frameNumber, track.id]
                 for element in track.detection:
                     row.append(element)
