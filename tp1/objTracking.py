@@ -3,6 +3,7 @@ from KalmanFilter import KalmanFilter
 from Detector import detect
 import cv2
 
+
 # Assuming the KalmanFilter class is defined as previously discussed
 # Assuming the detect function is defined as provided
 
@@ -40,7 +41,6 @@ def main():
                       (int(predicted_state[0][0]) + 10, int(predicted_state[1][0]) + 10),
                       predicted_rect_color, 2)
 
-
         # If a centroid is detected, track it
         if centers:
             # Use the first detected center for simplicity
@@ -48,8 +48,6 @@ def main():
             kf.predict()  # Predict the next state
             estimated_state, _ = kf.update(measurement)  # Update with the actual measurement
             # Predict the next state
-
-
 
             # Draw the tracking results
             # Circle for detected object
@@ -77,6 +75,7 @@ def main():
     # When everything is done, release the capture
     cap.release()
     cv2.destroyAllWindows()
+
 
 if __name__ == "__main__":
     main()

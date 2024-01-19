@@ -1,8 +1,26 @@
 import os
 import cv2
+import csv
 from tqdm import tqdm
 
 from TracksHandler import Frame
+
+
+def create_csv(frames: list[Frame], csv_filename) -> None:
+    progress_bar = tqdm(total=len(frames), desc="Create CSV")
+    with open(csv_filename, mode='w') as csv_file:
+        csv_writer = csv.writer(csv_file)
+        # csv_writer.writerow(['frame', 'id', 'bb_left', 'bb_top', 'bb_width', 'bb_height', 'conf', 'x', 'y', 'z'])
+        for frame in frames:
+            progress_bar.update(1)
+            #   <frame>, <id>, <bb_left>, <bb_top>, <bb_width>, <bb_height>, <conf>, <x>, <y>, <z>
+            for track in frame.tracks.values():
+                row = [frame.frameNumber, track.id]
+                for element in track.detection:
+                    row.append(element)
+                for i in range(4):
+                    row.append(-1)
+                csv_writer.writerow(row)
 
 
 def visualisation(frames: list[Frame]) -> None:
