@@ -1,6 +1,6 @@
 import subprocess
 
-from TracksHandler import computeTracks
+from TracksHandler import computeTracks, Methode
 from Visualisation import visualisation, create_video, create_csv
 
 
@@ -47,39 +47,26 @@ def write_lines(version_name: str):
 
 
 # sigma_iou = 0.5
-for sigma_iou in [0.15, 0.5, 0.8, 0.9]:
-    frames = computeTracks(sigma_iou=sigma_iou, Hungarian=False, kalmanFilter=False)
-    create_csv(frames=frames,
-               csv_filename='benchmark/data/trackers/mot_challenge/MOT15-train/MPNTrack/data/ADL-Rundle-6.txt')
-    get_metrics()
-    write_lines(f'greedy - {sigma_iou}')
-    # visualisation(frames=frames)
-    # create_video(output_name='greedy.mp4', frame_rate=10)
+# for sigma_iou in [0.15, 0.5, 0.8, 0.9]:
+# for sigma_iou in [0.9]:
+#     for methode in Methode:
+#         frames = computeTracks(sigma_iou=sigma_iou, methode=methode, kalman_filter=False)
+#         create_csv(frames=frames,
+#                    csv_filename='benchmark/data/trackers/mot_challenge/MOT15-train/MPNTrack/data/ADL-Rundle-6.txt')
+#         get_metrics()
+#         write_lines(f'\t\t{methode} -[σ = {sigma_iou}]')
+#
+#         frames = computeTracks(sigma_iou=sigma_iou, methode=methode, kalman_filter=True)
+#         create_csv(frames=frames,
+#                    csv_filename='benchmark/data/trackers/mot_challenge/MOT15-train/MPNTrack/data/ADL-Rundle-6.txt')
+#         get_metrics()
+#         write_lines(f'\t\t{methode} - Kalman -[σ = {sigma_iou}]')
 
-    frames = computeTracks(sigma_iou=sigma_iou, Hungarian=True, kalmanFilter=False)
-    create_csv(frames=frames,
-               csv_filename='benchmark/data/trackers/mot_challenge/MOT15-train/MPNTrack/data/ADL-Rundle-6.txt')
-    get_metrics()
-    write_lines(f'Hungarian - {sigma_iou}')
-    # visualisation(frames=frames)
-    # create_video(output_name='hungarian.mp4', frame_rate=10)
+        # visualisation(frames=frames)
+        # create_video(output_name='greedy.mp4', frame_rate=10)
 
-    frames = computeTracks(sigma_iou=sigma_iou, Hungarian=False, kalmanFilter=True)
-    create_csv(frames=frames,
-               csv_filename='benchmark/data/trackers/mot_challenge/MOT15-train/MPNTrack/data/ADL-Rundle-6.txt')
-    get_metrics()
-    write_lines(f'KalmanFilter greedy - {sigma_iou}')
-    # visualisation(frames=frames)
-
-    frames = computeTracks(sigma_iou=sigma_iou, Hungarian=True, kalmanFilter=True)
-    create_csv(frames=frames,
-               csv_filename='benchmark/data/trackers/mot_challenge/MOT15-train/MPNTrack/data/ADL-Rundle-6.txt')
-    get_metrics()
-    write_lines(f'KalmanFilter Hungarian- {sigma_iou}')
-# visualisation(frames=frames)
-# create_video(output_name='greedy_kalman.mp4')
-
-# frames = computeTracks(sigma_iou=sigma_iou, Hungarian=True, kalmanFilter=True)
-# frames = computeTracks(sigma_iou=sigma_iou, Hungarian=True, kalmanFilter=False)
-# visualisation(frames=frames)
-# create_video(output_name='hungarian_kalman.mp4')
+sigma_iou = 0.5
+methode = Methode.RESNET
+frames = computeTracks(methode=methode, sigma_iou=sigma_iou, kalman_filter=False)
+get_metrics()
+write_lines(f'\t\t{methode} -[σ = {sigma_iou}]')

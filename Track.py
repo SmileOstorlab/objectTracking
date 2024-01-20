@@ -1,19 +1,26 @@
-from typing import Optional
+from typing import Optional, Any
+
+import torch
 
 from tp1.KalmanFilter import KalmanFilter
+from Comparaison_Metrics import extract_features
 
 
 class Track:
-    def __init__(self, id: int, detection: list[int], kalmanFilter: bool = False) -> None:
-        self.id = id
-        self.detection = detection
-        self.kalmanFilter = None
-        self.center = None
-        self.prediction = None
+    def __init__(self, id: int, detection: list[int], kalmanFilter: bool = False,
+                 model: Optional[Any] = None, frame_number: int = -1) -> None:
+        self.id: int = id
+        self.detection: list[int] = detection
+        self.kalmanFilter: Optional[KalmanFilter] = None
+        self.center: Optional[list[float]] = None
+        self.prediction: Optional[list[int]] = None
+        self.current_embedding: Optional[torch.Tensor] = None
         if kalmanFilter:
             self.kalmanFilter = KalmanFilter(dt=0.1, u_x=0, u_y=0, std_acc=1, std_meas_x=0.1, std_meas_y=0.1)
+        if model is not None:
+            self.set_current_embedding(frame_number=frame_number, model=model)
 
-    def update(self, detection: [list[int]]):
+    def update(self, detection: list[int], frame_number: int = -1, model: Optional[Any] = None) -> None:
         if self.kalmanFilter is not None:
             center_x = detection[0] + (detection[2] / 2)
             center_y = detection[1] + (detection[3] / 2)
@@ -26,6 +33,18 @@ class Track:
 
         else:
             self.detection = detection
+
+        if self.current_embedding is not None:
+            self.set_current_embedding(frame_number=frame_number, model=model)
+
+    def set_current_embedding(self, frame_number: int, model: Any) -> None:
+        if self.current_embedding is None:
+            if self.prediction is not None:
+                self.current_embedding = extract_features(f'ADL-Rundle-6/img1/{frame_number:06}.jpg', model,
+                                                          *self.prediction).cpu().numpy()
+            else:
+                self.current_embedding = extract_features(f'ADL-Rundle-6/img1/{frame_number:06}.jpg', model,
+                                                          *self.detection).cpu().numpy()
 
 
 class IDManager:
@@ -68,16 +87,20 @@ class Frame:
             ret.append(self.tracks[track_id])
         return ret
 
-    def add_track(self, detection: list[int], kalmanFilter: bool = False) -> None:
+    def add_track(self, detection: list[int], kalmanFilter: bool = False,
+                  model: Optional[Any] = None, frame_number: int = -1) -> None:
         """Add a new track to the current frame
 
         :param detection: box to give the track
         :param kalmanFilter: boolean value to use a kalman filter
+        :param frame_number: frame number to get the path of the picture
+        :param model: NN model to get the embedding from
         :return: None
         """
         track_id = self.idManager.generate_new_id()
         self.add_active_track(track_id=track_id)
-        self.tracks[track_id] = Track(id=track_id, detection=detection, kalmanFilter=kalmanFilter)
+        self.tracks[track_id] = Track(id=track_id, detection=detection, kalmanFilter=kalmanFilter,
+                                      model=model, frame_number=frame_number)
 
     def update_track(self, track_id: int, detection: list[int]) -> None:
         """Update the given track with its new detection

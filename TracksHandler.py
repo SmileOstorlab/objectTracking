@@ -2,19 +2,33 @@ import numpy as np
 
 from tqdm import tqdm
 from time import sleep
+from enum import Enum
 
 from PreProcessing import preprocess
 from Track import Track, IDManager, Frame
 from greedy import greedy
 from hungarian import hungarian
+from hungarian_improved import hungarian_improved
+from Comparaison_Metrics import model_embedding
 
 
-def computeTracks(sigma_iou: float = 0.4, Hungarian: bool = False, kalmanFilter: bool = False) -> list[Frame]:
+class Methode(Enum):
+    GREEDY = 1
+    HUNGARIAN = 2
+    RESNET = 3
+
+
+def computeTracks(methode: Methode, kalman_filter: bool = False, sigma_iou: float = 0.4) -> list[Frame]:
     df = preprocess()
     frames: list[Frame] = []
     unique_frames = df['frame'].unique()
     idManager = IDManager()
     progress_bar = tqdm(total=len(unique_frames), desc="Compute box")
+
+    if methode == Methode.RESNET:
+        model = model_embedding(resnet=True)
+    else:
+        model = None
 
     # Step 3: Associate detections to tracks
     for frame_number in unique_frames:
@@ -28,22 +42,25 @@ def computeTracks(sigma_iou: float = 0.4, Hungarian: bool = False, kalmanFilter:
                                  idManager=idManager)
 
         if len(frames) != 0:
-            if not Hungarian:
+            if methode == Methode.GREEDY:
                 greedy(sigma_iou=sigma_iou, frame_detections=frame_detections, currentFrame=currentFrame,
-                       active_tracks=frames[-1].get_active_track(), kalmanFilter=kalmanFilter)
+                       active_tracks=frames[-1].get_active_track(), kalmanFilter=kalman_filter)
             else:
                 num_tracks = len(frames[-1].tracks) if frames else 0
                 num_detections = len(frame_detections)
                 cost_matrix = np.ones((num_tracks, num_detections))
-
-                hungarian(sigma_iou=sigma_iou, frame_detections=frame_detections, currentFrame=currentFrame,
-                          active_tracks=frames[-1].get_active_track(), cost_matrix=cost_matrix,
-                          kalmanFilter=kalmanFilter)
-
+                if methode == Methode.HUNGARIAN:
+                    hungarian(sigma_iou=sigma_iou, frame_detections=frame_detections, currentFrame=currentFrame,
+                              active_tracks=frames[-1].get_active_track(), cost_matrix=cost_matrix,
+                              kalmanFilter=kalman_filter)
+                else:
+                    hungarian_improved(frame_detections=frame_detections, currentFrame=currentFrame,
+                                       active_tracks=frames[-1].get_active_track(), cost_matrix=cost_matrix,
+                                       threshold=sigma_iou, kalmanFilter=kalman_filter, model=model)
         else:  # if no track, add all the boxes to new tracks
             for _, det in frame_detections.iterrows():
                 det_box = [det['bb_left'], det['bb_top'], det['bb_width'], det['bb_height']]
-                currentFrame.add_track(detection=det_box, kalmanFilter=kalmanFilter)
+                currentFrame.add_track(detection=det_box, kalmanFilter=kalman_filter, model=model, frame_number=1)
 
         frames.append(currentFrame)
 

@@ -1,10 +1,10 @@
 import pandas as pd
 
-from Iou import compute_iou
+from Comparaison_Metrics import compute_iou
 from TracksHandler import Track, Frame
 
 
-def greedy(frame_detections: pd.DataFrame, active_tracks: list[Track], currentFrame: Frame,
+def greedy(frame_detections: pd.Series, active_tracks: list[Track], currentFrame: Frame,
            sigma_iou: float = 0.4, kalmanFilter: bool = False) -> None:
     for _, det in frame_detections.iterrows():
         det_box = [det['bb_left'], det['bb_top'], det['bb_width'], det['bb_height']]
