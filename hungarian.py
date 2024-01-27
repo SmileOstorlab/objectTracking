@@ -24,8 +24,8 @@ def hungarian(frame_detections: pd.Series, active_tracks: list[Track], currentFr
                         frame_detections=frame_detections, threshold=sigma_iou, kalmanFilter=kalmanFilter)
 
 
-def hungarian_algorithm(cost_matrix, currentFrame: Frame, active_tracks: list[Track], frame_detections: pd.Series,
-                        threshold: float = 0.4, kalmanFilter: bool = False,
+def hungarian_algorithm(cost_matrix, currentFrame: Frame, active_tracks: list[Track],
+                        frame_detections: pd.Series | pd.DataFrame, threshold: float = 0.4, kalmanFilter: bool = False,
                         model: Optional[Any] = None, frame_number: int = -1) -> None:
     row_indices, col_indices = linear_sum_assignment(cost_matrix)
 

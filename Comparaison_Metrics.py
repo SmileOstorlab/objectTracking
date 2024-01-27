@@ -7,6 +7,23 @@ from typing import Any, Optional
 from functools import lru_cache
 
 
+class ResnetSingleton:
+    _instance = None
+
+    @classmethod
+    def get_instance(cls):
+        if cls._instance is None:
+            cls._instance = cls._init_model()
+        return cls._instance
+
+    @staticmethod
+    def _init_model():
+        model = torch.hub.load('pytorch/vision:v0.10.0', 'resnet50', pretrained=True)
+        model = torch.nn.Sequential(*(list(model.children())[:-1]))
+        model.eval()
+        return model
+
+
 def get_rectangle_coordinate(det: list[int]) -> list[int]:
     return [det[0], det[1], det[0] + det[2],
             det[1] + det[3]]
@@ -33,16 +50,6 @@ def compute_iou(boxA: list[int], boxB: list[int]) -> float:
     return iou
 
 
-def model_embedding(resnet: bool) -> Any:
-    if resnet:
-        model = torch.hub.load('pytorch/vision:v0.10.0', 'resnet50', pretrained=True)
-    else:
-        model = torch.hub.load('pytorch/vision:v0.10.0', 'mobilenet_v2', pretrained=True)
-    model = torch.nn.Sequential(*(list(model.children())[:-1]))
-    model.eval()
-    return model
-
-
 def preprocess_image(image_path: str, x: int, y: int, width: int, height: int) -> Image:
     preprocess = transforms.Compose([
         transforms.Resize(256),
@@ -57,7 +64,8 @@ def preprocess_image(image_path: str, x: int, y: int, width: int, height: int) -
 
 
 @lru_cache(maxsize=None)
-def extract_features(image_path: str, model: Any, x: int, y: int, width: int, height: int) -> torch.Tensor:
+def extract_features(image_path: str, x: int, y: int, width: int, height: int) -> torch.Tensor:
+    model = ResnetSingleton.get_instance()
     image = preprocess_image(image_path, x, y, width, height)
     with torch.no_grad():
         features = model(image)

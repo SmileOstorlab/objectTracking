@@ -13,9 +13,9 @@ def compute_combined_score(iou, image_embedding, alpha):
     return alpha * image_embedding + (1 - alpha) * iou
 
 
-def hungarian_improved(frame_detections: pd.Series, active_tracks: list[Track], currentFrame: Frame,
-                       cost_matrix: np.ndarray, threshold: float = 0.4, kalmanFilter: bool = False,
-                       model: Optional[Any] = None) -> None:
+def improved_cost_matrix(frame_detections: pd.Series, active_tracks: list[Track], currentFrame: Frame,
+                         cost_matrix: np.ndarray, threshold: float = 0.4, kalmanFilter: bool = False,
+                         model: Optional[Any] = None) -> None:
     for track_idx, (track) in enumerate(active_tracks):
         for det_idx, (_, det) in enumerate(frame_detections.iterrows()):
             det_box = [det['bb_left'], det['bb_top'], det['bb_width'], det['bb_height']]

@@ -63,7 +63,6 @@ def create_video(output_name: str = 'output_video.mp4', frame_rate=30) -> None:
     frame_files.sort()
 
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # You can choose other codecs like 'XVID' or 'MJPG'
-    frame_rate = 30  # Adjust the frame rate as needed
     frame_size = (1920, 1080)  # Set the width and height of frames as needed
     out = cv2.VideoWriter(output_name, fourcc, frame_rate, frame_size)
 

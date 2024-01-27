@@ -65,8 +65,12 @@ def write_lines(version_name: str):
         # visualisation(frames=frames)
         # create_video(output_name='greedy.mp4', frame_rate=10)
 
-sigma_iou = 0.5
-methode = Methode.RESNET
-frames = computeTracks(methode=methode, sigma_iou=sigma_iou, kalman_filter=False)
-get_metrics()
-write_lines(f'\t\t{methode} -[σ = {sigma_iou}]')
+for sigma_iou in [0.15, 0.8, 0.9]:
+    methode = Methode.YOLO
+    frames = computeTracks(methode=methode, sigma_iou=sigma_iou, kalman_filter=False)
+    create_csv(frames=frames,
+               csv_filename='benchmark/data/trackers/mot_challenge/MOT15-train/MPNTrack/data/ADL-Rundle-6.txt')
+    get_metrics()
+    write_lines(f'\t\t{methode} -[σ = {sigma_iou}]')
+    visualisation(frames)
+    create_video(output_name=f'/home/smile/Documents/object_tracking/yolo{sigma_iou}.mp4', frame_rate=15)

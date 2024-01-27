@@ -8,14 +8,16 @@ from PreProcessing import preprocess
 from Track import Track, IDManager, Frame
 from greedy import greedy
 from hungarian import hungarian
-from hungarian_improved import hungarian_improved
-from Comparaison_Metrics import model_embedding
+from hungarian_improved import improved_cost_matrix
+from Comparaison_Metrics import ResnetSingleton
+from yolo import yolo_cost_matrix
 
 
 class Methode(Enum):
     GREEDY = 1
     HUNGARIAN = 2
     RESNET = 3
+    YOLO = 4
 
 
 def computeTracks(methode: Methode, kalman_filter: bool = False, sigma_iou: float = 0.4) -> list[Frame]:
@@ -26,7 +28,7 @@ def computeTracks(methode: Methode, kalman_filter: bool = False, sigma_iou: floa
     progress_bar = tqdm(total=len(unique_frames), desc="Compute box")
 
     if methode == Methode.RESNET:
-        model = model_embedding(resnet=True)
+        model = ResnetSingleton.get_instance()
     else:
         model = None
 
@@ -53,10 +55,16 @@ def computeTracks(methode: Methode, kalman_filter: bool = False, sigma_iou: floa
                     hungarian(sigma_iou=sigma_iou, frame_detections=frame_detections, currentFrame=currentFrame,
                               active_tracks=frames[-1].get_active_track(), cost_matrix=cost_matrix,
                               kalmanFilter=kalman_filter)
-                else:
-                    hungarian_improved(frame_detections=frame_detections, currentFrame=currentFrame,
-                                       active_tracks=frames[-1].get_active_track(), cost_matrix=cost_matrix,
-                                       threshold=sigma_iou, kalmanFilter=kalman_filter, model=model)
+                elif methode == Methode.RESNET:
+                    improved_cost_matrix(frame_detections=frame_detections, currentFrame=currentFrame,
+                                         active_tracks=frames[-1].get_active_track(), cost_matrix=cost_matrix,
+                                         threshold=sigma_iou, kalmanFilter=kalman_filter, model=model)
+                elif methode == Methode.YOLO:
+                    path = f'/home/smile/Documents/object_tracking/ADL-Rundle-6/img1/{frame_number:06}.jpg'
+
+                    yolo_cost_matrix(image_path=path, currentFrame=currentFrame,
+                                     active_tracks=frames[-1].get_active_track(),
+                                     threshold=sigma_iou, kalmanFilter=kalman_filter)
         else:  # if no track, add all the boxes to new tracks
             for _, det in frame_detections.iterrows():
                 det_box = [det['bb_left'], det['bb_top'], det['bb_width'], det['bb_height']]

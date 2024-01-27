@@ -1,4 +1,3 @@
 ## todo
 
-1. other methode of detection which takes into account other information (embedding of neural network + color histogram)
-2. check if there isn't a problem with the hungarian algo (weird behavior with changes in sigma iou)
+1. huge problem with hungarian (debug with video to find where is the problem, maybe look at the matrix of cost )
