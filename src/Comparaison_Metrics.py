@@ -3,7 +3,6 @@ import torch
 from PIL.Image import Image
 from torchvision import transforms
 from PIL import Image
-from typing import Any, Optional
 from functools import lru_cache
 
 

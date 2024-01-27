@@ -50,7 +50,7 @@ def visualisation(frames: list[Frame]) -> None:
             cv2.putText(image, f"ID: {track.id}", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 
             # Save the modified image with boxes and IDs
-            output_image_path = os.path.join('img2', image_file)
+            output_image_path = os.path.join('../img2', image_file)
             cv2.imwrite(output_image_path, image)
 
     progress_bar.close()

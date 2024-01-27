@@ -1,3 +1,4 @@
 ## todo
 
-1. huge problem with hungarian (debug with video to find where is the problem, maybe look at the matrix of cost )
+1. use YOLO to debug cause the algo still seems to be buggy 
+2. detection is weird some bound are just empty and in the middle of nowhere 

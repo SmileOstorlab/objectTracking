@@ -10,7 +10,7 @@ from Track import Track, Frame
 
 def hungarian(frame_detections: pd.Series, active_tracks: list[Track], currentFrame: Frame,
               cost_matrix: np.ndarray, sigma_iou: float = 0.4, kalmanFilter: bool = False) -> None:
-    for track_idx, (track) in enumerate(active_tracks):
+    for track_idx, track in enumerate(active_tracks):
         for det_idx, (_, det) in enumerate(frame_detections.iterrows()):
             det_box = [det['bb_left'], det['bb_top'], det['bb_width'], det['bb_height']]
             if track.prediction is not None:  # ONLY set if Kalman filter is TRUE
@@ -32,7 +32,6 @@ def hungarian_algorithm(cost_matrix, currentFrame: Frame, active_tracks: list[Tr
     for track_idx, det_idx in zip(row_indices, col_indices):
         # Get the corresponding IoU score from the cost matrix
         iou_score = 1 - cost_matrix[track_idx, det_idx]
-        det_idx = list(col_indices).index(det_idx)  # Find the detection index
         det = frame_detections.iloc[det_idx]
         det_box = [det['bb_left'], det['bb_top'], det['bb_width'], det['bb_height']]
 

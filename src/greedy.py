@@ -1,7 +1,7 @@
 import pandas as pd
 
-from Comparaison_Metrics import compute_iou
-from TracksHandler import Track, Frame
+from src.Comparaison_Metrics import compute_iou
+from Track import Track, Frame
 
 
 def greedy(frame_detections: pd.Series, active_tracks: list[Track], currentFrame: Frame,
