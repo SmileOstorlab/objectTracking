@@ -40,6 +40,7 @@ def build_det_box(det: pd.Series):
 
 def yolo_cost_matrix(active_tracks: list[Track], currentFrame: Frame, image_path: str,
                      threshold: float = 0.4, kalmanFilter: bool = False, ) -> None:
+
     frame_detections = get_pedestrian_detection(image_path=image_path)
     cost_matrix = np.ones((len(active_tracks), len(frame_detections)))
     detections = []
@@ -56,7 +57,7 @@ def yolo_cost_matrix(active_tracks: list[Track], currentFrame: Frame, image_path
                 iou = compute_iou(det_box, track.detection)
             cost_matrix[track_idx, det_idx] = 1 - iou
 
-    frame_detections = pd.DataFrame(detections, columns=['bb_left', 'bb_top', 'bb_width', 'bb_height'])
+    frame_detections = pd.DataFrame(detections, columns=['bb_left', 'bb_top', 'bb_width', 'bb_height']).drop_duplicates()
     # Apply the Hungarian algorithm
     hungarian_algorithm(cost_matrix=cost_matrix, currentFrame=currentFrame, active_tracks=active_tracks,
                         frame_detections=frame_detections, threshold=threshold, kalmanFilter=kalmanFilter)

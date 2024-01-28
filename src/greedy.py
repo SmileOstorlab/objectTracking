@@ -25,4 +25,4 @@ def greedy(frame_detections: pd.Series, active_tracks: list[Track], currentFrame
         if best_iou >= sigma_iou:
             currentFrame.update_track(track_id=best_track, detection=det_box)
         else:
-            currentFrame.add_track(detection=det_box, kalmanFilter=kalmanFilter)
+            currentFrame.add_track(detection=det_box, use_kalmanFilter=kalmanFilter)

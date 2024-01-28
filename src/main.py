@@ -74,7 +74,7 @@ base_path = os.environ.get('OBJECT_TRACKING_PATH')
 csv_path = os.path.join(base_path, 'benchmark/data/trackers/mot_challenge/MOT15-train/MPNTrack/data/ADL-Rundle-6.txt')
 
 for sigma_iou in [0.8]:
-    for kalman_filter in [False]:
+    for kalman_filter in [False, True]:
         methode = Methode.YOLO
         frames = computeTracks(methode=methode, sigma_iou=sigma_iou, kalman_filter=kalman_filter)
         create_csv(frames=frames, csv_filename=csv_path)
@@ -84,4 +84,4 @@ for sigma_iou in [0.8]:
 
         video_path = os.path.join(base_path, f'{methode}-{sigma_iou}-KalmanFilter{kalman_filter}.mp4')
 
-        # create_video(output_name=video_path, frame_rate=30)
+        create_video(output_name=video_path, frame_rate=30)

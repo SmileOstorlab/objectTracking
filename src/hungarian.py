@@ -34,10 +34,20 @@ def hungarian_algorithm(cost_matrix, currentFrame: Frame, active_tracks: list[Tr
         iou_score = 1 - cost_matrix[track_idx, det_idx]
         det = frame_detections.iloc[det_idx]
         det_box = [det['bb_left'], det['bb_top'], det['bb_width'], det['bb_height']]
+        # print(det_box)
 
         if iou_score >= threshold:
             # If IoU is above the threshold, update the track with the new detection
             track_id = active_tracks[track_idx].id
             currentFrame.update_track(track_id=track_id, detection=det_box)
         else:
-            currentFrame.add_track(detection=det_box, kalmanFilter=kalmanFilter, model=model, frame_number=frame_number)
+            currentFrame.add_track(detection=det_box, use_kalmanFilter=kalmanFilter, model=model,
+                                   frame_number=frame_number)
+
+    # Handle unmatched detections
+    unmatched_detections = set(range(len(frame_detections))) - set(col_indices)
+    for det_idx in unmatched_detections:
+        det = frame_detections.iloc[det_idx]
+        det_box = [det['bb_left'], det['bb_top'], det['bb_width'], det['bb_height']]
+        currentFrame.add_track(detection=det_box, use_kalmanFilter=kalmanFilter, model=model,
+                               frame_number=frame_number)

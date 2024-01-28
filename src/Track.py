@@ -2,6 +2,7 @@ import torch
 import os
 
 from typing import Optional, Any
+from copy import deepcopy
 
 from tp1.KalmanFilter import KalmanFilter
 from Comparaison_Metrics import extract_features
@@ -13,16 +14,17 @@ def get_image_path(frame_number: int) -> str:
 
 
 class Track:
-    def __init__(self, id: int, detection: list[int], kalmanFilter: bool = False,
+    def __init__(self, id: int, detection: list[int], use_kalmanFilter: bool = False,
                  model: Optional[Any] = None, frame_number: int = -1) -> None:
         self.id: int = id
         self.detection: list[int] = detection
-        self.kalmanFilter: Optional[KalmanFilter] = None
         self.center: Optional[list[float]] = None
         self.prediction: Optional[list[int]] = None
         self.current_embedding: Optional[torch.Tensor] = None
-        if kalmanFilter:
+        if use_kalmanFilter:
             self.kalmanFilter = KalmanFilter(dt=0.1, u_x=0, u_y=0, std_acc=1, std_meas_x=0.1, std_meas_y=0.1)
+        else:
+            self.kalmanFilter: Optional[KalmanFilter] = None
         if model is not None:
             self.set_current_embedding(frame_number=frame_number, model=model)
 
@@ -35,10 +37,7 @@ class Track:
             new_x, new_y = res[0][0] - (detection[2] / 2), res[1][0] - (detection[3] / 2)
             self.prediction = [new_x, new_y, detection[2], detection[3]]
 
-            self.detection = detection
-
-        else:
-            self.detection = detection
+        self.detection = detection
 
         if self.current_embedding is not None:
             self.set_current_embedding(frame_number=frame_number, model=model)
@@ -73,7 +72,7 @@ class Frame:
         self.idManager = idManager
         self.frameNumber = frameNumber
         self.active_track = set()
-        self.tracks: dict[int, Track] = {} if matched_tracks is None else {track.id: track for track in matched_tracks}
+        self.tracks: dict[int, Track] = {} if matched_tracks is None else {track.id: deepcopy(track) for track in matched_tracks}
 
     def add_active_track(self, track_id: int) -> None:
         self.active_track.add(track_id)
@@ -92,19 +91,19 @@ class Frame:
             ret.append(self.tracks[track_id])
         return ret
 
-    def add_track(self, detection: list[int], kalmanFilter: bool = False,
+    def add_track(self, detection: list[int], use_kalmanFilter: bool = False,
                   model: Optional[Any] = None, frame_number: int = -1) -> None:
         """Add a new track to the current frame
 
         :param detection: box to give the track
-        :param kalmanFilter: boolean value to use a kalman filter
+        :param use_kalmanFilter: boolean value to use a kalman filter
         :param frame_number: frame number to get the path of the picture
         :param model: NN model to get the embedding from
         :return: None
         """
         track_id = self.idManager.generate_new_id()
         self.add_active_track(track_id=track_id)
-        self.tracks[track_id] = Track(id=track_id, detection=detection, kalmanFilter=kalmanFilter,
+        self.tracks[track_id] = Track(id=track_id, detection=detection, use_kalmanFilter=use_kalmanFilter,
                                       model=model, frame_number=frame_number)
 
     def update_track(self, track_id: int, detection: list[int]) -> None:

@@ -70,7 +70,7 @@ def computeTracks(methode: Methode, kalman_filter: bool = False, sigma_iou: floa
         else:  # if no track, add all the boxes to new tracks
             for _, det in frame_detections.iterrows():
                 det_box = [det['bb_left'], det['bb_top'], det['bb_width'], det['bb_height']]
-                currentFrame.add_track(detection=det_box, kalmanFilter=kalman_filter, model=model, frame_number=1)
+                currentFrame.add_track(detection=det_box, use_kalmanFilter=kalman_filter, model=model, frame_number=1)
 
         frames.append(currentFrame)
 
