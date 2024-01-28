@@ -1,6 +1,6 @@
 import os
-import cv2
 import csv
+import cv2
 from tqdm import tqdm
 
 from TracksHandler import Frame
@@ -38,7 +38,7 @@ def create_csv(frames: list[Frame], csv_filename) -> None:
                 for element in track.detection:
                     row.append(element)
                 row.append(1)
-                for i in range(3):
+                for _ in range(3):
                     row.append(-1)
                 csv_writer.writerow(row)
 

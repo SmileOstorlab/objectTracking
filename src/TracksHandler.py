@@ -14,14 +14,14 @@ from Comparaison_Metrics import ResnetSingleton
 from yolo import yolo_cost_matrix
 
 
-class Methode(Enum):
+class Method(Enum):
     GREEDY = 1
     HUNGARIAN = 2
     RESNET = 3
     YOLO = 4
 
 
-def computeTracks(method: Methode, kalman_filter: bool = False, sigma_iou: float = 0.4) -> list[Frame]:
+def computeTracks(method: Method, kalman_filter: bool = False, sigma_iou: float = 0.4) -> list[Frame]:
     """
     Processes frame detections and computes tracking information using the specified method.
 
@@ -44,7 +44,7 @@ def computeTracks(method: Methode, kalman_filter: bool = False, sigma_iou: float
     idManager = IDManager()
     progress_bar = tqdm(total=len(unique_frames), desc="Compute box")
 
-    if method == Methode.RESNET:
+    if method == Method.RESNET:
         model = ResnetSingleton.get_instance()
     else:
         model = None
@@ -61,22 +61,22 @@ def computeTracks(method: Methode, kalman_filter: bool = False, sigma_iou: float
                                  idManager=idManager)
 
         if len(frames) != 0:
-            if method == Methode.GREEDY:
+            if method == Method.GREEDY:
                 greedy_matching(sigma_iou=sigma_iou, frame_detections=frame_detections, currentFrame=currentFrame,
                                 active_tracks=frames[-1].get_active_track(), kalmanFilter=kalman_filter)
             else:
                 num_tracks = len(frames[-1].tracks) if frames else 0
                 num_detections = len(frame_detections)
                 cost_matrix = np.ones((num_tracks, num_detections))
-                if method == Methode.HUNGARIAN:
+                if method == Method.HUNGARIAN:
                     hungarian_matching(sigma_iou=sigma_iou, frame_detections=frame_detections, currentFrame=currentFrame,
                                        active_tracks=frames[-1].get_active_track(), cost_matrix=cost_matrix,
                                        kalmanFilter=kalman_filter)
-                elif method == Methode.RESNET:
+                elif method == Method.RESNET:
                     improved_cost_matrix(frame_detections=frame_detections, currentFrame=currentFrame,
                                          active_tracks=frames[-1].get_active_track(), cost_matrix=cost_matrix,
                                          threshold=sigma_iou, kalmanFilter=kalman_filter, model=model)
-                elif method == Methode.YOLO:
+                elif method == Method.YOLO:
                     base_path = os.environ.get('OBJECT_TRACKING_PATH')
                     image_path = os.path.join(base_path, f'ADL-Rundle-6/img1/{frame_number:06}.jpg')
 

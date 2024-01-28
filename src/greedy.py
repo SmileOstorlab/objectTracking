@@ -1,6 +1,6 @@
 import pandas as pd
 
-from src.Comparaison_Metrics import compute_iou
+from Comparaison_Metrics import compute_iou
 from Track import Track, Frame
 
 
