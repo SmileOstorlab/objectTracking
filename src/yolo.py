@@ -40,6 +40,25 @@ def build_det_box(det: pd.Series):
 
 def yolo_cost_matrix(active_tracks: list[Track], currentFrame: Frame, image_path: str,
                      threshold: float = 0.4, kalmanFilter: bool = False, ) -> None:
+    """
+    Generates a cost matrix for active tracks and detections obtained from YOLOv5 model.
+
+    This function applies the YOLOv5 model to detect pedestrians in the given image and creates a cost matrix based on
+    the Intersection over Union (IoU) between each YOLO detection and each active track. The cost matrix is used to
+    associate detections to tracks using the Hungarian algorithm. It supports the use of a Kalman filter for improved
+    track prediction accuracy.
+
+    Args:
+       active_tracks (list[Track]): A list of currently active tracks.
+       currentFrame (Frame): The current frame object to which detections and tracks are being matched.
+       image_path (str): The file path of the image to be processed by the YOLOv5 model.
+       threshold (float, optional): The IoU threshold for matching detections to tracks. Defaults to 0.4.
+       kalmanFilter (bool, optional): A flag to determine whether to use Kalman filter predictions for IoU calculations.
+                                      Defaults to False.
+
+    Returns:
+       None: The function updates the currentFrame object with matched tracks but does not return any value.
+    """
 
     frame_detections = get_pedestrian_detection(image_path=image_path)
     cost_matrix = np.ones((len(active_tracks), len(frame_detections)))

@@ -11,6 +11,21 @@ def get_base_path():
 
 
 def create_csv(frames: list[Frame], csv_filename) -> None:
+    """
+    Generates a CSV file from tracking data in a list of Frame objects.
+
+    This function iterates through each Frame object in the provided list and writes the tracking information for each
+    active track into a CSV file. The format of the CSV follows a specific structure needed for a benchmark script.
+    Each row in the CSV file represents a track in a frame and includes details such as frame number, track ID,
+    bounding box coordinates, confidence, and placeholders for additional coordinates.
+
+    Args:
+       frames (list[Frame]): A list of Frame objects containing tracking data.
+       csv_filename (str): The name of the CSV file to be created.
+
+    Returns:
+       None: This function writes to a file but does not return any value.
+    """
     progress_bar = tqdm(total=len(frames), desc="Create CSV")
     with open(csv_filename, mode='w') as csv_file:
         csv_writer = csv.writer(csv_file)
@@ -29,6 +44,19 @@ def create_csv(frames: list[Frame], csv_filename) -> None:
 
 
 def visualisation(frames: list[Frame]) -> None:
+    """
+    Draws bounding boxes around detected objects in each frame and saves the annotated images.
+
+    For each frame in the provided list, this function reads the corresponding image, draws bounding boxes around active
+    tracks, and optionally marks centers and predictions if available. Each modified image is then saved in a specified
+    directory. The function uses OpenCV for image processing and drawing.
+
+    Args:
+      frames (list[Frame]): A list of Frame objects containing tracking data.
+
+    Returns:
+      None: This function modifies and saves images but does not return any value.
+    """
     progress_bar = tqdm(total=len(frames), desc="Draw Boxes")
     images_directory = os.path.join(get_base_path(), 'ADL-Rundle-6/img1')
 
@@ -63,6 +91,21 @@ def visualisation(frames: list[Frame]) -> None:
 
 
 def create_video(output_name: str = 'output_video.mp4', frame_rate=30) -> None:
+    """
+    Creates a video from a sequence of image frames stored in a specified directory.
+
+    This function reads JPEG frames from a directory, compiles them into a video file at a specified frame rate, and
+    saves the video to a given output filename. It uses OpenCV for reading frames and writing the video file. The function
+    also includes a progress bar to indicate the process of compiling frames into a video.
+
+    Args:
+       output_name (str, optional): The name of the output video file. Defaults to 'output_video.mp4'.
+       frame_rate (int, optional): The frame rate (frames per second) for the video. Defaults to 30.
+
+    Returns:
+       None: This function creates and saves a video file but does not return any value.
+    """
+
     # Directory where your JPEG frames are stored
     frames_directory = os.path.join(get_base_path(), 'img2')
     frame_files = [f for f in os.listdir(frames_directory) if f.endswith('.jpg')]

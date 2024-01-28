@@ -14,6 +14,28 @@ def get_image_path(frame_number: int) -> str:
 
 
 class Track:
+    """
+    Represents a track in object tracking, holding detection, prediction, and state information.
+
+    This class is used to manage the state of an individual track in an object tracking system. It can optionally
+    incorporate a Kalman filter for prediction updates and can compute feature embeddings based on a given model.
+
+    Attributes:
+       id (int): The unique identifier for the track.
+       detection (list[int]): The bounding box detection for the track.
+       center (Optional[list[float]]): The center point of the track's bounding box.
+       prediction (Optional[list[int]]): The predicted bounding box using a Kalman filter, if enabled.
+       current_embedding (Optional[torch.Tensor]): The current feature embedding of the object in the track.
+       kalmanFilter (Optional[KalmanFilter]): A Kalman filter instance for the track, if enabled.
+
+    Args:
+       id (int): The unique identifier for the track.
+       detection (list[int]): The initial bounding box detection for the track.
+       use_kalmanFilter (bool, optional): Flag to enable the use of a Kalman filter. Defaults to False.
+       model (Optional[Any], optional): The model used for feature extraction. Defaults to None.
+       frame_number (int, optional): The frame number for initial embedding computation. Defaults to -1.
+    """
+
     def __init__(self, id: int, detection: list[int], use_kalmanFilter: bool = False,
                  model: Optional[Any] = None, frame_number: int = -1) -> None:
         self.id: int = id
@@ -26,9 +48,20 @@ class Track:
         else:
             self.kalmanFilter: Optional[KalmanFilter] = None
         if model is not None:
-            self.set_current_embedding(frame_number=frame_number, model=model)
+            self.set_current_embedding(frame_number=frame_number)
 
     def update(self, detection: list[int], frame_number: int = -1, model: Optional[Any] = None) -> None:
+        """
+        Updates the track with new detection data and recalculates the state.
+
+        This method updates the track's detection and optionally recalculates the prediction using a Kalman filter.
+        If a feature extraction model is provided, it also updates the current feature embedding of the track.
+
+        Args:
+          detection (list[int]): The updated bounding box detection for the track.
+          frame_number (int, optional): The frame number for updating the embedding. Defaults to -1.
+          model (Optional[Any], optional): The model used for feature extraction. Defaults to None.
+        """
         if self.kalmanFilter is not None:
             center_x = detection[0] + (detection[2] / 2)
             center_y = detection[1] + (detection[3] / 2)
@@ -40,17 +73,27 @@ class Track:
         self.detection = detection
 
         if self.current_embedding is not None:
-            self.set_current_embedding(frame_number=frame_number, model=model)
+            self.set_current_embedding(frame_number=frame_number)
 
-    def set_current_embedding(self, frame_number: int, model: Any) -> None:
+    def set_current_embedding(self, frame_number: int) -> None:
+        """
+        Sets the current feature embedding of the track based on the provided model.
+
+        This method calculates the feature embedding for the current or predicted bounding box of the track.
+
+        Args:
+            frame_number (int): The frame number for feature extraction.
+        """
         if self.current_embedding is None:
             image_path = get_image_path(frame_number=frame_number)
             if self.prediction is not None:
                 x, y, width, height = self.prediction
-                self.current_embedding = extract_features(image_path=image_path, x=x, y=y, width=width, height=height).cpu().numpy()
+                self.current_embedding = extract_features(image_path=image_path, x=x, y=y, width=width,
+                                                          height=height).cpu().numpy()
             else:
                 x, y, width, height = self.detection
-                self.current_embedding = extract_features(image_path=image_path, x=x, y=y, width=width, height=height).cpu().numpy()
+                self.current_embedding = extract_features(image_path=image_path, x=x, y=y, width=width,
+                                                          height=height).cpu().numpy()
 
 
 class IDManager:
@@ -74,7 +117,8 @@ class Frame:
         self.idManager = idManager
         self.frameNumber = frameNumber
         self.active_track = set()
-        self.tracks: dict[int, Track] = {} if matched_tracks is None else {track.id: deepcopy(track) for track in matched_tracks}
+        self.tracks: dict[int, Track] = {} if matched_tracks is None else {track.id: deepcopy(track) for track in
+                                                                           matched_tracks}
 
     def add_active_track(self, track_id: int) -> None:
         self.active_track.add(track_id)
