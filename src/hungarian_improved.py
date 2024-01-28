@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import os
 
 from sklearn.metrics.pairwise import cosine_similarity
 from typing import Any, Optional
@@ -16,12 +17,15 @@ def compute_combined_score(iou, image_embedding, alpha):
 def improved_cost_matrix(frame_detections: pd.Series, active_tracks: list[Track], currentFrame: Frame,
                          cost_matrix: np.ndarray, threshold: float = 0.4, kalmanFilter: bool = False,
                          model: Optional[Any] = None) -> None:
+
+    base_path = os.environ.get('OBJECT_TRACKING_PATH')
+
     for track_idx, (track) in enumerate(active_tracks):
         for det_idx, (_, det) in enumerate(frame_detections.iterrows()):
             det_box = [det['bb_left'], det['bb_top'], det['bb_width'], det['bb_height']]
 
-            embedding = extract_features(f'ADL-Rundle-6/img1/{currentFrame.frameNumber:06}.jpg', model,
-                                         *det_box).cpu().numpy()
+            image_path = os.path.join(base_path, f'ADL-Rundle-6/img1/{currentFrame.frameNumber:06}.jpg')
+            embedding = extract_features(image_path=image_path, *det_box).cpu().numpy()
             #  !! the result is only computed once, then is it cached
 
             if track.prediction is not None:  # ONLY set if Kalman filter is TRUE

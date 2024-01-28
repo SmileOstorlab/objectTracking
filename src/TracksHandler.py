@@ -1,4 +1,5 @@
 import numpy as np
+import os
 
 from tqdm import tqdm
 from time import sleep
@@ -60,9 +61,10 @@ def computeTracks(methode: Methode, kalman_filter: bool = False, sigma_iou: floa
                                          active_tracks=frames[-1].get_active_track(), cost_matrix=cost_matrix,
                                          threshold=sigma_iou, kalmanFilter=kalman_filter, model=model)
                 elif methode == Methode.YOLO:
-                    path = f'/home/smile/Documents/object_tracking/ADL-Rundle-6/img1/{frame_number:06}.jpg'
+                    base_path = os.environ.get('OBJECT_TRACKING_PATH')
+                    image_path = os.path.join(base_path, f'ADL-Rundle-6/img1/{frame_number:06}.jpg')
 
-                    yolo_cost_matrix(image_path=path, currentFrame=currentFrame,
+                    yolo_cost_matrix(image_path=image_path, currentFrame=currentFrame,
                                      active_tracks=frames[-1].get_active_track(),
                                      threshold=sigma_iou, kalmanFilter=kalman_filter)
         else:  # if no track, add all the boxes to new tracks

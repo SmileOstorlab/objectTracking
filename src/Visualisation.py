@@ -6,6 +6,10 @@ from tqdm import tqdm
 from TracksHandler import Frame
 
 
+def get_base_path():
+    return os.environ.get('OBJECT_TRACKING_PATH')
+
+
 def create_csv(frames: list[Frame], csv_filename) -> None:
     progress_bar = tqdm(total=len(frames), desc="Create CSV")
     with open(csv_filename, mode='w') as csv_file:
@@ -18,14 +22,15 @@ def create_csv(frames: list[Frame], csv_filename) -> None:
                 row = [frame.frameNumber, track.id]
                 for element in track.detection:
                     row.append(element)
-                for i in range(4):
+                row.append(1)
+                for i in range(3):
                     row.append(-1)
                 csv_writer.writerow(row)
 
 
 def visualisation(frames: list[Frame]) -> None:
     progress_bar = tqdm(total=len(frames), desc="Draw Boxes")
-    images_directory = 'ADL-Rundle-6/img1'
+    images_directory = os.path.join(get_base_path(), 'ADL-Rundle-6/img1')
 
     for frame in frames:
         progress_bar.update(1)
@@ -41,7 +46,8 @@ def visualisation(frames: list[Frame]) -> None:
             x, y, w, h = int(x), int(y), int(w), int(h)
             cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
             if track.center is not None:
-                cv2.rectangle(image, (int(track.center[0]), int(track.center[1])), (int(track.center[0]) + 10, int(track.center[1]) + 10), (0, 0, 255), 2)
+                cv2.rectangle(image, (int(track.center[0]), int(track.center[1])),
+                              (int(track.center[0]) + 10, int(track.center[1]) + 10), (0, 0, 255), 2)
             if track.prediction is not None:
                 x, y, w, h = track.prediction
                 x, y, w, h = int(x), int(y), int(w), int(h)
@@ -50,7 +56,7 @@ def visualisation(frames: list[Frame]) -> None:
             cv2.putText(image, f"ID: {track.id}", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 
             # Save the modified image with boxes and IDs
-            output_image_path = os.path.join('../img2', image_file)
+            output_image_path = os.path.join(get_base_path(), 'img2', image_file)
             cv2.imwrite(output_image_path, image)
 
     progress_bar.close()
@@ -58,7 +64,7 @@ def visualisation(frames: list[Frame]) -> None:
 
 def create_video(output_name: str = 'output_video.mp4', frame_rate=30) -> None:
     # Directory where your JPEG frames are stored
-    frames_directory = 'img2'
+    frames_directory = os.path.join(get_base_path(), 'img2')
     frame_files = [f for f in os.listdir(frames_directory) if f.endswith('.jpg')]
     frame_files.sort()
 

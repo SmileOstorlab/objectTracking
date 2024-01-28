@@ -1,9 +1,15 @@
-from typing import Optional, Any
-
 import torch
+import os
+
+from typing import Optional, Any
 
 from tp1.KalmanFilter import KalmanFilter
 from Comparaison_Metrics import extract_features
+
+
+def get_image_path(frame_number: int) -> str:
+    base_path = os.environ.get('OBJECT_TRACKING_PATH')
+    return os.path.join(base_path, f'ADL-Rundle-6/img1/{frame_number:06}.jpg')
 
 
 class Track:
@@ -39,12 +45,11 @@ class Track:
 
     def set_current_embedding(self, frame_number: int, model: Any) -> None:
         if self.current_embedding is None:
+            image_path = get_image_path(frame_number=frame_number)
             if self.prediction is not None:
-                self.current_embedding = extract_features(f'ADL-Rundle-6/img1/{frame_number:06}.jpg', model,
-                                                          *self.prediction).cpu().numpy()
+                self.current_embedding = extract_features(image_path=image_path, *self.prediction).cpu().numpy()
             else:
-                self.current_embedding = extract_features(f'ADL-Rundle-6/img1/{frame_number:06}.jpg', model,
-                                                          *self.detection).cpu().numpy()
+                self.current_embedding = extract_features(image_path=image_path, *self.detection).cpu().numpy()
 
 
 class IDManager:

@@ -1,4 +1,5 @@
 import subprocess
+import os
 
 from TracksHandler import computeTracks, Methode
 from Visualisation import visualisation, create_video, create_csv
@@ -62,16 +63,25 @@ def write_lines(version_name: str):
 #         get_metrics()
 #         write_lines(f'\t\t{methode} - Kalman -[σ = {sigma_iou}]')
 
-        # visualisation(frames=frames)
-        # create_video(output_name='greedy.mp4', frame_rate=10)
+# visualisation(frames=frames)
+# create_video(output_name='greedy.mp4', frame_rate=10)
 
-for sigma_iou in [0.7, 0.8, 0.9]:
-    for kalman_filter in [False, True]:
+
+os.environ['OBJECT_TRACKING_PATH'] = '/home/smile/Documents/object_tracking'
+
+
+base_path = os.environ.get('OBJECT_TRACKING_PATH')
+csv_path = os.path.join(base_path, 'benchmark/data/trackers/mot_challenge/MOT15-train/MPNTrack/data/ADL-Rundle-6.txt')
+
+for sigma_iou in [0.8]:
+    for kalman_filter in [False]:
         methode = Methode.YOLO
         frames = computeTracks(methode=methode, sigma_iou=sigma_iou, kalman_filter=kalman_filter)
-        create_csv(frames=frames,
-                   csv_filename='benchmark/data/trackers/mot_challenge/MOT15-train/MPNTrack/data/ADL-Rundle-6.txt')
+        create_csv(frames=frames, csv_filename=csv_path)
         get_metrics()
         write_lines(f'\t\t{methode} - [Kalman = {kalman_filter}] -[σ = {sigma_iou}]')
-        # visualisation(frames)
-        # create_video(output_name=f'/home/smile/Documents/object_tracking/hungarian-{kalman_filter}-{sigma_iou}.mp4', frame_rate=30)
+        visualisation(frames)
+
+        video_path = os.path.join(base_path, f'{methode}-{sigma_iou}-KalmanFilter{kalman_filter}.mp4')
+
+        # create_video(output_name=video_path, frame_rate=30)
