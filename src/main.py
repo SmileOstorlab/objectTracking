@@ -75,11 +75,11 @@ os.environ['OBJECT_TRACKING_PATH'] = '/home/smile/Documents/object_tracking'
 base_path = os.environ.get('OBJECT_TRACKING_PATH')
 csv_path = os.path.join(base_path, 'benchmark/data/trackers/mot_challenge/MOT15-train/MPNTrack/data/ADL-Rundle-6.txt')
 
-for method in Method:
-    for sigma_iou in [0.5]:
+for method in [Method.GREEDY]:
+    for sigma_iou in [0.8]:
         # for sigma in range(1, 20, 1):
         #     sigma_iou = sigma * 0.05
-        for kalman_filter in [True, False]:
+        for kalman_filter in [False, True]:
             print(method, sigma_iou, kalman_filter)
             frames = computeTracks(method=method, sigma_iou=sigma_iou, kalman_filter=kalman_filter)
             create_csv(frames=frames, csv_filename=csv_path)

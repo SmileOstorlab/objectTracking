@@ -26,7 +26,8 @@ def get_pedestrian_detection(image_path: str) -> pd.Series:
     model = YOLOv5Singleton.get_instance()
     results = model(image_path)
     df = results.pandas().xyxy[0]
-    return df[df['class'] == 0]  # class from pedestrian
+    df = df[df['class'] == 0]  # class from pedestrian
+    return df[df['confidence'] > 0.6]
 
 
 def build_det_box(det: pd.Series):
