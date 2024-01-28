@@ -46,9 +46,11 @@ class Track:
         if self.current_embedding is None:
             image_path = get_image_path(frame_number=frame_number)
             if self.prediction is not None:
-                self.current_embedding = extract_features(image_path=image_path, *self.prediction).cpu().numpy()
+                x, y, width, height = self.prediction
+                self.current_embedding = extract_features(image_path=image_path, x=x, y=y, width=width, height=height).cpu().numpy()
             else:
-                self.current_embedding = extract_features(image_path=image_path, *self.detection).cpu().numpy()
+                x, y, width, height = self.detection
+                self.current_embedding = extract_features(image_path=image_path, x=x, y=y, width=width, height=height).cpu().numpy()
 
 
 class IDManager:

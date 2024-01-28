@@ -17,15 +17,15 @@ def compute_combined_score(iou, image_embedding, alpha):
 def improved_cost_matrix(frame_detections: pd.Series, active_tracks: list[Track], currentFrame: Frame,
                          cost_matrix: np.ndarray, threshold: float = 0.4, kalmanFilter: bool = False,
                          model: Optional[Any] = None) -> None:
-
     base_path = os.environ.get('OBJECT_TRACKING_PATH')
 
     for track_idx, (track) in enumerate(active_tracks):
         for det_idx, (_, det) in enumerate(frame_detections.iterrows()):
+            x, y, width, height = det['bb_left'], det['bb_top'], det['bb_width'], det['bb_height']
             det_box = [det['bb_left'], det['bb_top'], det['bb_width'], det['bb_height']]
 
             image_path = os.path.join(base_path, f'ADL-Rundle-6/img1/{currentFrame.frameNumber:06}.jpg')
-            embedding = extract_features(image_path=image_path, *det_box).cpu().numpy()
+            embedding = extract_features(image_path=image_path, x=x, y=y, width=width, height=height).cpu().numpy()
             #  !! the result is only computed once, then is it cached
 
             if track.prediction is not None:  # ONLY set if Kalman filter is TRUE
